@@ -1,6 +1,7 @@
 package challenge.tech.crud_auth.qr_code_service.controller;
 
 import challenge.tech.crud_auth.qr_code_service.dto.UploadSuccessResponseDto;
+import challenge.tech.crud_auth.qr_code_service.service.QrCodeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,19 +19,15 @@ import java.time.LocalDateTime;
 @RequestMapping("/qr-code")
 public class QrCodeController {
 
-    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UploadSuccessResponseDto> processUploadedQrCode(@RequestPart MultipartFile qrCodeFile) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(generateSuccessResponseDto());
+    private QrCodeService qrCodeService;
+
+    public QrCodeController(QrCodeService qrCodeService) {
+        this.qrCodeService = qrCodeService;
     }
 
-    private UploadSuccessResponseDto generateSuccessResponseDto() {
-        return UploadSuccessResponseDto.UploadSuccessResponseDtoBuilder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CREATED)
-                .message("QR Code uploaded successfully")
-                .dataId("1")
-                .fileName("fileName")
-                .build();
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UploadSuccessResponseDto> processUploadedQrCode(@RequestPart MultipartFile qrCodeFile) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(qrCodeService.processUploadedQrCode(qrCodeFile));
     }
 
 }
