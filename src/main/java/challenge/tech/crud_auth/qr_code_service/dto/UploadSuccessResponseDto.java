@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 @Data
 public class UploadSuccessResponseDto extends BaseResponseDto {
 
-    private String dataId;
+    private Long qrCodeDataId;
     private String fileName;
 
     @Builder(builderMethodName = "UploadSuccessResponseDtoBuilder")
-    public UploadSuccessResponseDto(LocalDateTime timestamp, HttpStatusCode status, String message, String dataId, String fileName) {
+    public UploadSuccessResponseDto(LocalDateTime timestamp, HttpStatusCode status, String message, Long qrCodeDataId, String fileName) {
         super(timestamp, status, message);
-        this.dataId = dataId;
+        this.qrCodeDataId = qrCodeDataId;
         this.fileName = fileName;
     }
 
