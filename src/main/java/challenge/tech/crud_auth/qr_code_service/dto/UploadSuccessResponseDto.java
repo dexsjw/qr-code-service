@@ -15,7 +15,8 @@ public class UploadSuccessResponseDto extends BaseResponseDto {
     private String fileName;
 
     @Builder(builderMethodName = "UploadSuccessResponseDtoBuilder")
-    public UploadSuccessResponseDto(LocalDateTime timestamp, HttpStatusCode status, String message, Long qrCodeDataId, String fileName) {
+    public UploadSuccessResponseDto(LocalDateTime timestamp, HttpStatusCode status, String message,
+                                    Long qrCodeDataId, String fileName) {
         super(timestamp, status, message);
         this.qrCodeDataId = qrCodeDataId;
         this.fileName = fileName;
