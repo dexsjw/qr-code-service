@@ -13,6 +13,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeWriter;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,58 +37,84 @@ public class QrCodeServiceImpl implements QrCodeService {
 
     @Override
     public QrCodeDataResponseDto processUploadedQrCodeFile(MultipartFile qrCodeFile) {
-        String fileName = qrCodeFile.getOriginalFilename();
-        String qrCodeData = processQrCodeFile(qrCodeFile);
-        QrCodeDataEntity qrCodeDataEntity = saveQrCodeData(fileName, qrCodeData);
-        QrCodeDataRecord qrCodeDataRecord = new QrCodeDataRecord(qrCodeDataEntity.getId(),
-                qrCodeDataEntity.getFileName(), qrCodeDataEntity.getData());
+        QrCodeDataEntity qrCodeDataEntity = processFileAndSaveQrCodeData(qrCodeFile);
 
         return QrCodeDataResponseDto.QrCodeDataResponseDtoBuilder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CREATED)
-                .message("QR Code uploaded successfully")
-                .qrCodeData(qrCodeDataRecord)
+                .message("QR code image uploaded successfully")
+                .qrCodeData(QrCodeDataRecord.builder()
+                        .id(qrCodeDataEntity.getId())
+                        .fileName(qrCodeDataEntity.getFileName())
+                        .data(qrCodeDataEntity.getData())
+                        .build())
                 .build();
     }
 
     @Override
-    public BaseResponseDto processUploadedQrCodeFiles(List<MultipartFile> qrCodeFiles) {
-        StringBuilder sb = new StringBuilder();
-        for (MultipartFile qrCodeFile : qrCodeFiles) {
-            String fileName = qrCodeFile.getOriginalFilename();
-            String qrCodeData = processQrCodeFile(qrCodeFile);
-            Long qrCodeDataId = saveQrCodeData(fileName, qrCodeData).getId();
+    public QrCodeDataResponseDto processUploadedQrCodeFiles(List<MultipartFile> qrCodeFiles) {
+        List<QrCodeDataRecord> qrCodeDataRecordList = new ArrayList<>();
 
-            sb.append("{ qrCodeDataId: ").append(qrCodeDataId).append(" - ");
-            sb.append("fileName: ").append(fileName).append(" }, ");
+        for (MultipartFile qrCodeFile : qrCodeFiles) {
+            QrCodeDataEntity qrCodeDataEntity = processFileAndSaveQrCodeData(qrCodeFile);
+            qrCodeDataRecordList.add(QrCodeDataRecord.builder()
+                    .id(qrCodeDataEntity.getId())
+                    .fileName(qrCodeDataEntity.getFileName())
+                    .data(qrCodeDataEntity.getData())
+                    .build());
         }
 
-        return BaseResponseDto.builder()
+        return QrCodeDataResponseDto.QrCodeDataResponseDtoBuilder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CREATED)
-                .message("All QR code files have been uploaded successfully. Details: "
-                        + sb.deleteCharAt(sb.length() - 2))
+                .message("QR code images uploaded successfully")
+                .qrCodeDataList(qrCodeDataRecordList)
                 .build();
     }
 
     @Override
     public QrCodeDataResponseDto searchQrCodeData(Long id) {
-        QrCodeDataEntity qrCodeDataEntity = qrCodeDataRepository.findById(id).orElseThrow(() -> new QrCodeDataNotFoundException(id));
-        QrCodeDataRecord qrCodeDataRecord = new QrCodeDataRecord(qrCodeDataEntity.getId(),
-                qrCodeDataEntity.getFileName(), qrCodeDataEntity.getData());
+        QrCodeDataEntity qrCodeDataEntity = qrCodeDataRepository.findById(id)
+                .orElseThrow(() -> new QrCodeDataNotFoundException(id));
 
         return QrCodeDataResponseDto.QrCodeDataResponseDtoBuilder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.OK)
                 .message("QR code data found")
-                .qrCodeData(qrCodeDataRecord)
+                .qrCodeData(QrCodeDataRecord.builder()
+                        .id(qrCodeDataEntity.getId())
+                        .fileName(qrCodeDataEntity.getFileName())
+                        .data(qrCodeDataEntity.getData())
+                        .build())
                 .build();
     }
 
     @Override
-    public byte[] searchQrCodeImage(Long id) {
-        QrCodeDataEntity qrCodeDataEntity = qrCodeDataRepository.findById(id).orElseThrow(() -> new QrCodeDataNotFoundException(id));
-        return generateQrCode(qrCodeDataEntity.getData());
+    public QrCodeDataResponseDto searchAllQrCodeData() {
+        List<QrCodeDataRecord> qrCodeDataRecordList = new ArrayList<>();
+        List<QrCodeDataEntity> qrCodeDataEntityList = qrCodeDataRepository.findAll();
+
+        for (QrCodeDataEntity qrCodeDataEntity : qrCodeDataEntityList) {
+            qrCodeDataRecordList.add(QrCodeDataRecord.builder()
+                    .id(qrCodeDataEntity.getId())
+                    .fileName(qrCodeDataEntity.getFileName())
+                    .data(qrCodeDataEntity.getData())
+                    .build());
+        }
+
+        return QrCodeDataResponseDto.QrCodeDataResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CREATED)
+                .message("Found all QR code data")
+                .qrCodeDataList(qrCodeDataRecordList)
+                .build();
+    }
+
+    @Override
+    public ByteArrayResource searchQrCodeImage(Long id) {
+        QrCodeDataEntity qrCodeDataEntity = qrCodeDataRepository.findById(id)
+                .orElseThrow(() -> new QrCodeDataNotFoundException(id));
+        return generateQrCodeImage(qrCodeDataEntity.getData());
     }
 
     @Override
@@ -111,6 +139,15 @@ public class QrCodeServiceImpl implements QrCodeService {
                 .build();
     }
 
+    private QrCodeDataEntity processFileAndSaveQrCodeData(MultipartFile qrCodeFile) {
+        String fileName = qrCodeFile.getOriginalFilename();
+        String qrCodeData = processQrCodeFile(qrCodeFile);
+        return qrCodeDataRepository.save(QrCodeDataEntity.builder()
+                .fileName(fileName)
+                .data(qrCodeData)
+                .build());
+    }
+
     private String processQrCodeFile(MultipartFile qrCodeFile) {
         try {
             BufferedImage bufferedImage = ImageIO.read(qrCodeFile.getInputStream());
@@ -119,29 +156,19 @@ public class QrCodeServiceImpl implements QrCodeService {
             Result result = new MultiFormatReader().decode(binaryBitmap);
             return result.getText();
         } catch (IOException | NotFoundException ex) {
-            ex.printStackTrace();
             throw new RuntimeException(ex);
         }
     }
 
-    private QrCodeDataEntity saveQrCodeData(String fileName, String qrCodeData) {
-        QrCodeDataEntity qrCodeDataEntity = QrCodeDataEntity.builder()
-                .fileName(fileName)
-                .data(qrCodeData)
-                .build();
-        return qrCodeDataRepository.save(qrCodeDataEntity);
-    }
-
-    private byte[] generateQrCode(String data) {
+    private ByteArrayResource generateQrCodeImage(String data) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix qrCodeBitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, 250, 250);
             BufferedImage qrCodeBufferedImage = MatrixToImageWriter.toBufferedImage(qrCodeBitMatrix);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(qrCodeBufferedImage, "png", byteArrayOutputStream);
-            return byteArrayOutputStream.toByteArray();
+            return new ByteArrayResource(byteArrayOutputStream.toByteArray());
         } catch (WriterException | IOException ex) {
-            ex.printStackTrace();
             throw new RuntimeException(ex);
         }
     }
