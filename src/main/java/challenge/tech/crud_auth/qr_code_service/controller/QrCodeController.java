@@ -4,6 +4,8 @@ import challenge.tech.crud_auth.qr_code_service.dto.BaseResponseDto;
 import challenge.tech.crud_auth.qr_code_service.dto.QrCodeDataResponseDto;
 import challenge.tech.crud_auth.qr_code_service.service.QrCodeService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +31,7 @@ public class QrCodeController {
     }
 
     @PostMapping(path = "/upload/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<BaseResponseDto> processUploadedQrCodeFiles(@RequestPart List<MultipartFile> qrCodeFiles) {
+    public ResponseEntity<QrCodeDataResponseDto> processUploadedQrCodeFiles(@RequestPart List<MultipartFile> qrCodeFiles) {
         return ResponseEntity.status(HttpStatus.CREATED).body(qrCodeService.processUploadedQrCodeFiles(qrCodeFiles));
     }
 
@@ -38,17 +40,22 @@ public class QrCodeController {
         return ResponseEntity.status(HttpStatus.OK).body(qrCodeService.searchQrCodeData(id));
     }
 
+    @GetMapping(path = "/data/all", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<QrCodeDataResponseDto> searchAllQrCodeData() {
+        return ResponseEntity.status(HttpStatus.OK).body(qrCodeService.searchAllQrCodeData());
+    }
+
     @GetMapping(path = "/image/{id}", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> searchQrCodeImage(@PathVariable Long id) {
+    public ResponseEntity<ByteArrayResource> searchQrCodeImage(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(qrCodeService.searchQrCodeImage(id));
     }
 
-    @DeleteMapping(path = "/data/{id}")
+    @DeleteMapping(path = "/data/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponseDto> deleteQrCodeData(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(qrCodeService.deleteQrCodeData(id));
     }
 
-    @DeleteMapping(path = "/data/all")
+    @DeleteMapping(path = "/data/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponseDto> deleteAllQrCodeData() {
         return ResponseEntity.status(HttpStatus.OK).body(qrCodeService.deleteAllQrCodeData());
     }
