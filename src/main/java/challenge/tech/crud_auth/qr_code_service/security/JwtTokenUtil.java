@@ -3,8 +3,6 @@ package challenge.tech.crud_auth.qr_code_service.security;
 import challenge.tech.crud_auth.qr_code_service.entity.UserEntity;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -13,13 +11,12 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
-@AllArgsConstructor
 public class JwtTokenUtil {
 
     private final SecretKey secretKey = Jwts.SIG.HS256.key().build();
     private final String JWT_TOKEN_PREFIX = "Bearer ";
 
-    @Value("$jwt.session.period.milliseconds: 3600000")
+    @Value("${jwt.session.period.milliseconds: 3600000}")
     private long jwtSessionPeriod;
 
     public String createJwtToken(UserEntity user) {
