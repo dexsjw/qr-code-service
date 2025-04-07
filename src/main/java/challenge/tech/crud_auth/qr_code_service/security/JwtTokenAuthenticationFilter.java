@@ -42,7 +42,7 @@ public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
             }
 
             Claims claims = jwtTokenUtil.parseJwtToken(jwtToken);
-            if (claims != null && claims.getExpiration().after(new Date())) {
+            if (claims != null && !jwtTokenUtil.isJwtTokenExpired(claims)) {
                 String username = jwtTokenUtil.getUsername(claims);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
