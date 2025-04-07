@@ -5,6 +5,8 @@ import challenge.tech.crud_auth.qr_code_service.dto.ErrorResponseDto;
 import challenge.tech.crud_auth.qr_code_service.exception.QrCodeDataNotFoundException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,30 @@ import java.time.LocalDateTime;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(UnsupportedJwtException.class)
+    public ResponseEntity<ErrorResponseDto> handleUnsupportedJwtException(UnsupportedJwtException ex) {
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED)
+                .message("JWT is not a signed Claims")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponseDto);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponseDto> handleJwtException(JwtException ex) {
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED)
+                .message("Invalid JWT token")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponseDto);
+    }
 
     @ExceptionHandler(QrCodeDataNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleQrCodeDataNotFoundException(QrCodeDataNotFoundException ex) {
