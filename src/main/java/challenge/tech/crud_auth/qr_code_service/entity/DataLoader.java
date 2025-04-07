@@ -1,7 +1,7 @@
 package challenge.tech.crud_auth.qr_code_service.entity;
 
 import challenge.tech.crud_auth.qr_code_service.repository.QrCodeDataRepository;
-import challenge.tech.crud_auth.qr_code_service.repository.UserRepository;
+import challenge.tech.crud_auth.qr_code_service.repository.UserAuthRepository;
 import challenge.tech.crud_auth.qr_code_service.repository.UserRoleRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,22 +13,23 @@ import java.util.List;
 @Component
 public class DataLoader {
 
-    private UserRepository userRepository;
+    private UserAuthRepository userAuthRepository;
     private UserRoleRepository userRoleRepository;
     private PasswordEncoder passwordEncoder;
     private QrCodeDataRepository qrCodeDataRepository;
 
-    public DataLoader(UserRepository userRepository, UserRoleRepository userRoleRepository,
+    public DataLoader(UserAuthRepository userAuthRepository, UserRoleRepository userRoleRepository,
                       PasswordEncoder passwordEncoder, QrCodeDataRepository qrCodeDataRepository) {
-        this.userRepository = userRepository;
+        this.userAuthRepository = userAuthRepository;
         this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
         this.qrCodeDataRepository = qrCodeDataRepository;
     }
 
     @PostConstruct
     public void loadData() {
-        userRepository.deleteAll();
-        userRoleRepository.deleteAll();
+        userAuthRepository.deleteAll();
+//        userRoleRepository.deleteAll();
         qrCodeDataRepository.deleteAll();
 
         List<UserRoleEntity> adminRoles = new ArrayList<>();
@@ -41,12 +42,12 @@ public class DataLoader {
                 .build();
 
         UserRoleEntity userRole = UserRoleEntity.builder()
-                .roleName("USER")
+                .roleName("AUTH_USER")
                 .description("Authenticated User")
                 .build();
 
         UserRoleEntity publicRole = UserRoleEntity.builder()
-                .roleName("PUBLIC")
+                .roleName("PUBLIC_USER")
                 .description("Public User")
                 .build();
 
@@ -54,27 +55,27 @@ public class DataLoader {
         userRoles.add(userRole);
         publicRoles.add(publicRole);
 
-        userRepository.save(UserEntity.builder()
+        userAuthRepository.save(UserAuthEntity.builder()
                 .username("admin")
                 .password(passwordEncoder.encode("adminPw"))
                 .userRoles(adminRoles)
                 .build());
 
-        userRepository.save(UserEntity.builder()
-                .username("user")
-                .password(passwordEncoder.encode("userPw"))
+        userAuthRepository.save(UserAuthEntity.builder()
+                .username("authUser")
+                .password(passwordEncoder.encode("authUserPw"))
                 .userRoles(userRoles)
                 .build());
 
-        userRepository.save(UserEntity.builder()
-                .username("public")
-                .password(passwordEncoder.encode("publicPw"))
+        userAuthRepository.save(UserAuthEntity.builder()
+                .username("publicUser")
+                .password(passwordEncoder.encode("publicUserPw"))
                 .userRoles(publicRoles)
                 .build());
 
-        userRoleRepository.save(adminRole);
-        userRoleRepository.save(userRole);
-        userRoleRepository.save(publicRole);
+//        userRoleRepository.save(adminRole);
+//        userRoleRepository.save(userRole);
+//        userRoleRepository.save(publicRole);
 
         qrCodeDataRepository.save(QrCodeDataEntity.builder()
                 .fileName("Google_Url_QR_Code.png")

@@ -1,7 +1,6 @@
 package challenge.tech.crud_auth.qr_code_service.config;
 
 import challenge.tech.crud_auth.qr_code_service.security.JwtTokenAuthenticationFilter;
-import challenge.tech.crud_auth.qr_code_service.service.impl.QrCodeUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,8 +62,8 @@ public class WebSecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET).hasAnyRole("ADMIN", "USER", "PUBLIC")
-                                .requestMatchers("/upload/**").hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(HttpMethod.GET).hasAnyRole("ADMIN", "AUTH_USER", "PUBLIC_USER")
+                                .requestMatchers("/upload/**").hasAnyRole("ADMIN", "AUTH_USER")
                                 .requestMatchers("/auth/**").permitAll()
                                 .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider(userDetailsService, passwordEncoder()))
