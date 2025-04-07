@@ -10,6 +10,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -19,6 +20,18 @@ import java.time.LocalDateTime;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(BadCredentialsException ex) {
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST)
+                .message("Wrong credentials provided")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDto);
+    }
 
     @ExceptionHandler(UnsupportedJwtException.class)
     public ResponseEntity<ErrorResponseDto> handleUnsupportedJwtException(UnsupportedJwtException ex) {
