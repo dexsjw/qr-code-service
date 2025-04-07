@@ -14,8 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "user")
-public class UserEntity {
+@Table(name = "user_auth")
+public class UserAuthEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,8 +30,8 @@ public class UserEntity {
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
-            name = "user_user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
+            name = "user_auth_user_role",
+            joinColumns = @JoinColumn(name = "user_auth_id"),
             inverseJoinColumns = @JoinColumn(name = "user_role_id")
     )
     @JsonManagedReference
