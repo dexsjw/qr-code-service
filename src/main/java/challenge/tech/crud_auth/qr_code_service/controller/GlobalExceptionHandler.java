@@ -1,12 +1,13 @@
 package challenge.tech.crud_auth.qr_code_service.controller;
 
-import challenge.tech.crud_auth.qr_code_service.dto.BaseResponseDto;
 import challenge.tech.crud_auth.qr_code_service.dto.ErrorResponseDto;
 import challenge.tech.crud_auth.qr_code_service.exception.QrCodeDataNotFoundException;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,18 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST)
                 .message("Wrong credentials provided")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDto);
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<ErrorResponseDto> handleSignatureException(SignatureException ex) {
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST)
+                .message("Invalid JWT token used")
                 .errorMessage(ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDto);
@@ -55,6 +68,18 @@ public class GlobalExceptionHandler {
                 .errorMessage(ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponseDto);
+    }
+
+    @ExceptionHandler(ServletException.class)
+    public ResponseEntity<ErrorResponseDto> handleServletException(ServletException ex) {
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponseDto = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message("Error encountered in servlet")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDto);
     }
 
     @ExceptionHandler(QrCodeDataNotFoundException.class)
@@ -103,6 +128,19 @@ public class GlobalExceptionHandler {
                 .errorMessage(ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDto);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponseDto> handleException(RuntimeException ex) {
+        log.error("A RuntimeException has occurred!");
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponse = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message("Something went wrong")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)
