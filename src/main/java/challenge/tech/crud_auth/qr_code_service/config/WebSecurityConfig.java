@@ -62,8 +62,8 @@ public class WebSecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET).hasAnyRole("ADMIN", "AUTH_USER", "PUBLIC_USER")
                                 .requestMatchers("/upload/**").hasAnyRole("ADMIN", "AUTH_USER")
+                                .requestMatchers(HttpMethod.GET).permitAll()
                                 .requestMatchers("/auth/**").permitAll()
                                 .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider(userDetailsService, passwordEncoder()))
