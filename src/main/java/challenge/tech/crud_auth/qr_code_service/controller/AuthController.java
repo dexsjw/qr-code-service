@@ -42,7 +42,7 @@ public class AuthController {
                 .body(BaseResponseDto.builder()
                         .timestamp(LocalDateTime.now())
                         .status(HttpStatus.OK)
-                        .message("Login Success")
+                        .message(jwtToken)
                         .build());
     }
 
