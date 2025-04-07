@@ -1,7 +1,7 @@
 package challenge.tech.crud_auth.qr_code_service.service.impl;
 
-import challenge.tech.crud_auth.qr_code_service.entity.UserEntity;
-import challenge.tech.crud_auth.qr_code_service.repository.UserRepository;
+import challenge.tech.crud_auth.qr_code_service.entity.UserAuthEntity;
+import challenge.tech.crud_auth.qr_code_service.repository.UserAuthRepository;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,21 +11,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class QrCodeUserDetailsService implements UserDetailsService {
 
-    private UserRepository userRepository;
+    private UserAuthRepository userAuthRepository;
 
-    public QrCodeUserDetailsService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public QrCodeUserDetailsService(UserAuthRepository userAuthRepository) {
+        this.userAuthRepository = userAuthRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity userEntity = userRepository.findByUsername(username)
+        UserAuthEntity userAuthEntity = userAuthRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(""));
 
         return User.builder()
-                .username(userEntity.getUsername())
-                .password(userEntity.getPassword())
-                .roles("USER")
+                .username(userAuthEntity.getUsername())
+                .password(userAuthEntity.getPassword())
+                .roles("AUTH_USER")
                 .build();
     }
 

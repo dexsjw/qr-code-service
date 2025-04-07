@@ -30,6 +30,6 @@ public class UserRoleEntity {
 
     @ManyToMany(mappedBy = "userRoles")
     @JsonBackReference
-    private List<UserEntity> users;
+    private List<UserAuthEntity> userAuths;
 
 }
