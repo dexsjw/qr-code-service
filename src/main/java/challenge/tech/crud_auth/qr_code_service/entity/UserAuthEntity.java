@@ -28,7 +28,7 @@ public class UserAuthEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_auth_user_role",
             joinColumns = @JoinColumn(name = "user_auth_id"),
