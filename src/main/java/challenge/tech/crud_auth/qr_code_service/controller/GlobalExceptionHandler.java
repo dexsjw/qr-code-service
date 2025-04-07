@@ -130,8 +130,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDto);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponseDto> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
+        ErrorResponseDto errorResponse = ErrorResponseDto.ErrorResponseDtoBuilder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message("Something went wrong")
+                .errorMessage(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDto> handleException(RuntimeException ex) {
+    public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException ex) {
         log.error("A RuntimeException has occurred!");
         log.error(ex.getMessage(), ex.getCause(), ex.getStackTrace());
         ErrorResponseDto errorResponse = ErrorResponseDto.ErrorResponseDtoBuilder()
