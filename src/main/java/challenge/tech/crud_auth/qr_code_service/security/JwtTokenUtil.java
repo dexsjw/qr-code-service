@@ -2,6 +2,7 @@ package challenge.tech.crud_auth.qr_code_service.security;
 
 import challenge.tech.crud_auth.qr_code_service.entity.UserAuthEntity;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +41,8 @@ public class JwtTokenUtil {
             return jws.getPayload();
         } catch (UnsupportedJwtException ex) {
             throw new UnsupportedJwtException("JWT is not a signed Claims");
+        } catch (SignatureException ex) {
+            throw new SignatureException(ex.getMessage());
         } catch (JwtException ex) {
             throw new RuntimeException(ex);
         }
